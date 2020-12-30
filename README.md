@@ -1,2 +1,3 @@
-# circleci-demo
- Demo repo for Infracost running in CircleCI with GitHub
+# CircleCI Demo
+
+Demo repo for Infracost running in CircleCI with GitHub

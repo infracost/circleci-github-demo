@@ -1,0 +1,8 @@
+version: 2.1
+orbs:
+  infracost: infracost/infracost@0.4.0
+workflows:
+  main:
+    jobs:
+      - infracost/infracost:
+          tfdir: terraform
