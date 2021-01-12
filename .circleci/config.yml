@@ -6,3 +6,4 @@ workflows:
     jobs:
       - infracost/infracost:
           tfdir: terraform
+          usage_file: infracost-usage.yml
