@@ -5,5 +5,5 @@ workflows:
   main:
     jobs:
       - infracost/infracost:
-          terraform_dir: terraform
+          path: terraform
           usage_file: infracost-usage.yml
