@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   infracost: infracost/infracost@0.6.0
+  tf: circleci/terraform@2.0.0
 workflows:
   main:
     jobs:
