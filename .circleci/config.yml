@@ -4,6 +4,25 @@ orbs:
 workflows:
   main:
     jobs:
+      - tf:
+          command: plan -out .terraform/terraform.tfplan
+      - tf:
+          command: show -json .terraform/terraform.tfplan > tfplan.json
+      - persist_to_workspace:
+          root: /workspace/.terraform
+          paths:
+            - terraform.tfplan
+            - tfplan.json
+      # - infracost/infracost:
+      #     path: terraform
+      #     usage_file: infracost-usage.yml
       - infracost/infracost:
-          path: terraform
-          usage_file: infracost-usage.yml
+          context: aidock-platform-context-dev
+          path: /workspace/.terraform/tfplan.json
+          requires:
+            - plan
+          pre-steps:
+            - attach_workspace:
+                at: workspace
+            - run:
+                command: ls -lah /workspace/.terraform/
