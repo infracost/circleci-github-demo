@@ -1,9 +1,9 @@
 version: 2.1
 orbs:
-  infracost: infracost/infracost@0.6.0
+  infracost: infracost/infracost@dev:alpha
 workflows:
   main:
     jobs:
       - infracost/infracost:
           path: terraform
-          usage_file: infracost-usage.yml
+          #usage_file: infracost-usage.yml
