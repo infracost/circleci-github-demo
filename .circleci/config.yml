@@ -7,3 +7,4 @@ workflows:
       - infracost/infracost:
           path: terraform
           usage_file: infracost-usage.yml
+          show_skipped: "true"
