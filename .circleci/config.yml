@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  infracost: infracost/infracost@0.6.0
+  infracost: infracost/infracost@0.8.1
 workflows:
   main:
     jobs:
