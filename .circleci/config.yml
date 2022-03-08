@@ -7,13 +7,13 @@ jobs:
     environment:
       TF_ROOT: terraform # If your Terraform is in a subdirectory, specify it here
     steps:
-      - checkout
       - run:
           name: Skip if not pull request
           command: |
             if [ "$CIRCLE_PULL_REQUEST" == "" ]; then
               circleci step halt
             fi
+      - checkout
       - run:
           name: Run terraform plan
           command: |
@@ -31,15 +31,15 @@ jobs:
     docker:
       - image: infracost/infracost:ci-latest
     steps:
-      - attach_workspace:
-          at: /tmp
-      - checkout
       - run:
           name: Skip if not pull request
           command: |
             if [ "$CIRCLE_PULL_REQUEST" == "" ]; then
               circleci step halt
             fi
+      - attach_workspace:
+          at: /tmp
+      - checkout
       - run:
           name: Run Infracost breakdown
           command: |
