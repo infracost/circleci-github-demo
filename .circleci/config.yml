@@ -9,6 +9,12 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Skip if not pull request
+          command: |
+            if [ "$CIRCLE_PULL_REQUEST" == "" ]; then
+              circleci step halt
+            fi
+      - run:
           name: Run terraform plan
           command: |
             # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
@@ -29,18 +35,25 @@ jobs:
           at: /tmp
       - checkout
       - run:
+          name: Skip if not pull request
+          command: |
+            if [ "$CIRCLE_PULL_REQUEST" == "" ]; then
+              circleci step halt
+            fi
+      - run:
           name: Run Infracost breakdown
           command: |
             # Generate Infracost JSON output, the following docs might be useful:
             # Multi-project/workspaces: https://www.infracost.io/docs/features/config_file
             # Combine Infracost JSON files: https://www.infracost.io/docs/features/cli_commands/#combined-output-formats
-            infracost breakdown --path /tmp/plan.json --usage-file infracost-usage.yml --format json --out-file infracost.json
+            infracost breakdown --path /tmp/plan.json --format json --out-file infracost.json
       - run:
-          name: Run Infracost comment
+          name: Run infracost comment
           command: |
-            # See the 'Comment options' section in our README below for other options.
-            PULL_REQUEST_NUMBER=${CIRCLE_PULL_REQUEST##*/} # Extract the PR number from the PR URL
-            infracost comment github --path infracost.json --repo $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --pull-request $PULL_REQUEST_NUMBER --github-token $GITHUB_TOKEN
+              # Extract the PR number from the PR URL
+              PULL_REQUEST_NUMBER=${CIRCLE_PULL_REQUEST##*/}
+              # See the 'Comment options' section in our README below for other options.
+              infracost comment github --path infracost.json --repo $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --pull-request $PULL_REQUEST_NUMBER --github-token $GITHUB_TOKEN
 
 workflows:
   infracost:
