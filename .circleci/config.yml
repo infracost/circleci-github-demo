@@ -1,35 +1,13 @@
 version: 2.1
 
 jobs:
-  terraform_plan:
-    docker:
-      - image: hashicorp/terraform:latest
-    environment:
-      TF_ROOT: terraform # If your Terraform is in a subdirectory, specify it here
-    steps:
-      - run:
-          name: Skip if not pull request
-          command: |
-            if [ "$CIRCLE_PULL_REQUEST" == "" ]; then
-              circleci step halt
-            fi
-      - checkout
-      - run:
-          name: Run terraform plan
-          command: |
-            # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
-            cd $TF_ROOT
-            terraform init
-            terraform plan -out tfplan.binary
-            terraform show -json tfplan.binary > /tmp/plan.json
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - plan.json
   infracost:
-    working_directory: terraform
+    # Always use the latest 0.10.x version to pick up bug fixes and new resources.
+    # See https://www.infracost.io/docs/integrations/cicd/#docker-images for other options
     docker:
-      - image: infracost/infracost:ci-latest
+      - image: infracost/infracost:ci-0.10.0-beta.1
+    environment:
+      TF_ROOT: terraform
     steps:
       - run:
           name: Skip if not pull request
@@ -40,25 +18,43 @@ jobs:
       - attach_workspace:
           at: /tmp
       - checkout
+      # Clone the base branch of the pull request (e.g. main/master) into a temp directory.
       - run:
-          name: Run Infracost breakdown
+          name: Checkout base branch
+          command: git clone $CIRCLE_REPOSITORY_URL --branch=master --single-branch /tmp/base
+      # Generate Infracost JSON file as the baseline.
+      - run:
+          name: Generate Infracost cost estimate baseline
           command: |
-            # Generate Infracost JSON output, the following docs might be useful:
-            # Multi-project/workspaces: https://www.infracost.io/docs/features/config_file
-            # Combine Infracost JSON files: https://www.infracost.io/docs/features/cli_commands/#combined-output-formats
-            infracost breakdown --path /tmp/plan.json --format json --out-file infracost.json
+              infracost breakdown --path=${TF_ROOT} \
+                                  --format=json \
+                                  --out-file=/tmp/infracost-base.json
+      # Generate an Infracost diff and save it to a JSON file.
       - run:
-          name: Run infracost comment
+          name: Generate Infracost cost estimate baseline
+          command: |
+              infracost diff --path=${TF_ROOT} \
+                             --format=json \
+                             --compare-to=/tmp/infracost-base.json \
+                             --out-file=/tmp/infracost.json
+      # Posts a comment to the PR using the 'update' behavior.
+      # This creates a single comment and updates it. The "quietest" option.
+      # The other valid behaviors are:
+      #   delete-and-new - Delete previous comments and create a new one.
+      #   hide-and-new - Minimize previous comments and create a new one.
+      #   new - Create a new cost estimate comment on every push.
+      # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+      - run:
+          name: Post Infracost comment
           command: |
               # Extract the PR number from the PR URL
               PULL_REQUEST_NUMBER=${CIRCLE_PULL_REQUEST##*/}
-              # See the 'Comment options' section in our README below for other options.
-              infracost comment github --path infracost.json --repo $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --pull-request $PULL_REQUEST_NUMBER --github-token $GITHUB_TOKEN
-
+              infracost comment github --path=/tmp/infracost.json \
+                                       --repo=$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME \
+                                       --pull-request=$PULL_REQUEST_NUMBER \
+                                       --github-token=$GITHUB_TOKEN \
+                                       --behavior=update
 workflows:
   infracost:
     jobs:
-      - terraform_plan
-      - infracost:
-          requires:
-            - terraform_plan
+      - infracost
