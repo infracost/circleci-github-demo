@@ -2,7 +2,6 @@ version: 2.1
 
 jobs:
   infracost:
-    working_directory: terraform
     docker:
       - image: infracost/infracost:ci-latest
     steps:
