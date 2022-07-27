@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Run Infracost breakdown
           command: |
-            /tmp/infracost breakdown --path terraform --format json --out-file infracost.json
+            /tmp/infracost breakdown --path . --format json --out-file infracost.json
       - run:
           name: Test meta
           command: |
