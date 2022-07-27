@@ -26,7 +26,7 @@ jobs:
       - run:
           name: Test meta
           command: |
-             jq ".projects[].metadata" /tmp/infracost-base.json
+             jq ".projects[].metadata" infracost.json
 workflows:
   infracost:
     jobs:
