@@ -31,7 +31,4 @@ jobs:
 workflows:
   infracost:
     jobs:
-      - terraform_plan
-      - infracost:
-          requires:
-            - terraform_plan
+      - infracost
