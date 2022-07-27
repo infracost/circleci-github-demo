@@ -12,8 +12,6 @@ jobs:
             if [ "$CIRCLE_PULL_REQUEST" == "" ]; then
               circleci step halt
             fi
-      - attach_workspace:
-          at: /tmp
       - checkout
       - run:
           name: Download Infracost binary
@@ -23,6 +21,8 @@ jobs:
       - run:
           name: Run Infracost breakdown
           command: |
+            ls
+            pwd
             /tmp/infracost breakdown --path . --format json --out-file infracost.json
       - run:
           name: Test meta
